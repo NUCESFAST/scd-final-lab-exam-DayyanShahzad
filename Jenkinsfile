@@ -1,64 +1,65 @@
 pipeline {
     agent any
+
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/NUCESFAST/scd-final-lab-exam-DayyanShahzad.git', branch: 'master'
+                git 'https://github.com/NUCESFAST/scd-final-lab-exam-DayyanShahzad.git'
             }
         }
+        
         stage('Build Frontend Image') {
             steps {
                 dir('client') {
-                    sh 'docker build -t $DOCKERHUB_REPO/frontend:$BUILD_NUMBER .'
+                    bat 'start /B build-frontend.bat' // Assuming a batch script for building the frontend
                 }
             }
         }
+        
         stage('Build Backend Images') {
             parallel {
                 stage('Build Auth') {
                     steps {
                         dir('auth') {
-                            sh 'docker build -t $DOCKERHUB_REPO/auth:$BUILD_NUMBER .'
+                            bat 'start /B build-auth.bat' // Assuming a batch script for building the auth service
                         }
                     }
                 }
                 stage('Build Classrooms') {
                     steps {
                         dir('classrooms') {
-                            sh 'docker build -t $DOCKERHUB_REPO/classrooms:$BUILD_NUMBER .'
+                            bat 'start /B build-classrooms.bat' // Assuming a batch script for building the classrooms service
                         }
                     }
                 }
                 stage('Build Event-bus') {
                     steps {
                         dir('event-bus') {
-                            sh 'docker build -t $DOCKERHUB_REPO/event-bus:$BUILD_NUMBER .'
+                            bat 'start /B build-event-bus.bat' // Assuming a batch script for building the event-bus service
                         }
                     }
                 }
                 stage('Build Post') {
                     steps {
                         dir('post') {
-                            sh 'docker build -t $DOCKERHUB_REPO/post:$BUILD_NUMBER .'
+                            bat 'start /B build-post.bat' // Assuming a batch script for building the post service
                         }
                     }
                 }
             }
         }
+
         stage('Push Images to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "$DOCKER_CREDENTIALS_ID") {
-                        sh 'docker push $DOCKERHUB_REPO/frontend:$BUILD_NUMBER'
-                        sh 'docker push $DOCKERHUB_REPO/auth:$BUILD_NUMBER'
-                        sh 'docker push $DOCKERHUB_REPO/classrooms:$BUILD_NUMBER'
-                        sh 'docker push $DOCKERHUB_REPO/event-bus:$BUILD_NUMBER'
-                        sh 'docker push $DOCKERHUB_REPO/post:$BUILD_NUMBER'
-                    }
+                    // Add commands for pushing Docker images
+                    bat 'docker login -u your-username -p your-password'
+                    bat 'docker push your-image'
                 }
             }
         }
     }
+
     post {
         always {
             cleanWs()
